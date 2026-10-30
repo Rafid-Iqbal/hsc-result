@@ -198,7 +198,7 @@
         // Fetch directly or fallback to timestamp-busted direct image URL
         const captchaImg = document.getElementById('cap_img');
         // Pointing directly to the board's image endpoint with a cache buster
-        captchaImg.src = `http://www.eboardresults.com/v2/captcha?t=${Date.now()}`;
+        captchaImg.src = `/api/proxy?action=captcha&t=${Date.now()}`;
         document.getElementById('cap_in').value = '';
         box.innerText = 'Status: Ready!';
     } catch(e) {
