@@ -1,6 +1,8 @@
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    const { action } = req.query;
+    
+    // Clean up any accidental trailing dots or spaces from the query parameter
+    const action = (req.query.action || '').trim().replace(/\.+$/, '');
 
     if (action === 'captcha') {
         try {
@@ -30,7 +32,6 @@ export default async function handler(req, res) {
         }
     }
 
-    // This will show us precisely what query parameters made it through
     return res.status(400).json({ 
         error: 'Invalid action', 
         receivedQuery: req.query 
