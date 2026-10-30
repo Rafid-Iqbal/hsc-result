@@ -180,7 +180,7 @@
     </div>
   </div>
 
-  <script>
+ <script>
     let currentSessionId = '';
 
     // Load saved settings from localStorage
@@ -197,10 +197,15 @@
       box.innerText = 'Loading new captcha...';
       
       try {
+        const response = await fetch(`/api/proxy?action=captcha&t=${Date.now()}`);
+        currentSessionId = response.headers.get('x-php-session') || '';
+        
+        const blob = await response.blob();
         const captchaImg = document.getElementById('cap_img');
-        // Add a timestamp cache-buster so the browser always fetches a fresh image
-        captchaImg.src = `/api/proxy?action=captcha&t=${Date.now()}`;
+        captchaImg.src = URL.createObjectURL(blob);
+        
         document.getElementById('cap_in').value = '';
+        box.style.color = '#facc15';
         box.innerText = 'Status: Ready! Enter details & solve captcha.';
       } catch(e) {
         box.style.color = '#ef4444';
@@ -208,10 +213,10 @@
       }
     }
 
-    // Wire up the reload button
+    // Wire up reload button
     document.getElementById('cap_reload').onclick = loadCaptcha;
 
-    // Automatically trigger captcha load when the page finishes opening
+    // Automatically load captcha when page opens
     window.addEventListener('DOMContentLoaded', loadCaptcha);
 
     document.getElementById('submit_btn').onclick = async () => {
