@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚡ Direct BD Result Checker | Vercel Live Portal</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #111827;
+      --border: #1f2937;
+      --accent: #10b981;
+      --blue: #38bdf8;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 70%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      padding: 24px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 480px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    h1 { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+    .subtitle { color: var(--muted); font-size: 14px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      background: #0b0f19;
+      border: 1px solid #334155;
+      color: var(--text);
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    input:focus, select:focus { border-color: var(--blue); }
+    .full-width { margin-bottom: 12px; }
+    .captcha-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    #cap_img {
+      background: #fff;
+      padding: 3px;
+      height: 42px;
+      border-radius: 6px;
+      flex: 1;
+      object-fit: contain;
+    }
+    .btn {
+      width: 100%;
+      padding: 13px;
+      background: var(--accent);
+      color: #052e16;
+      border: none;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #34d399; }
+    #status_box {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #facc15;
+      white-space: pre-wrap;
+      max-height: 260px;
+      overflow-y: auto;
+      background: #020617;
+      padding: 12px;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <span class="badge">VERCEL SERVERLESS PROXY</span>
+      <h1>⚡ Live Result Checker</h1>
+      <p class="subtitle">Bypasses CORS & auto-retries during peak server traffic.</p>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label>Exam Type</label>
+          <select id="f_exam">
+            <option value="hsc">HSC / Alim</option>
+            <option value="ssc">SSC / Dakhil</option>
+            <option value="jsc">JSC / JDC</option>
+          </select>
+        </div>
+        <div>
+          <label>Exam Year</label>
+          <input type="text" id="f_year" value="2026" />
+        </div>
+      </div>
+
+      <div class="full-width">
+        <label>Education Board</label>
+        <select id="f_board">
+          <option value="rajshahi">Rajshahi</option>
+          <option value="dhaka">Dhaka</option>
+          <option value="comilla">Comilla</option>
+          <option value="jessore">Jessore</option>
+          <option value="chittagong">Chittagong</option>
+          <option value="barisal">Barisal</option>
+          <option value="sylhet">Sylhet</option>
+          <option value="dinajpur">Dinajpur</option>
+          <option value="mymensingh">Mymensingh</option>
+          <option value="madrasah">Madrasah</option>
+          <option value="tec">Technical (BTEB)</option>
+        </select>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label>Roll Number</label>
+          <input type="text" id="f_roll" placeholder="e.g. 123456" />
+        </div>
+        <div>
+          <label>Registration Number</label>
+          <input type="text" id="f_reg" placeholder="e.g. 1234567890" />
+        </div>
+      </div>
+
+      <label>Security Captcha</label>
+      <div class="captcha-row">
+        <img id="cap_img" src="" alt="Loading captcha..." />
+        <button id="cap_reload" style="padding:10px 14px;cursor:pointer;background:#1e293b;color:#38bdf8;border:1px solid #334155;border-radius:8px;font-weight:700;">↻</button>
+      </div>
+
+      <input id="cap_in" type="text" placeholder="Type Captcha Here" style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:12px;" />
+
+      <button class="btn" id="submit_btn">🚀 FETCH RESULT (AUTO-RETRY)</button>
+
+      <div id="status_box">Status: Ready. Enter details & solve captcha.</div>
+    </div>
+  </div>
+
+  <script>
+    let currentSessionId = '';
+
+    // Load saved settings from localStorage
+    const saved = JSON.parse(localStorage.getItem('ver_res_cfg') || '{}');
+    if(saved.exam) document.getElementById('f_exam').value = saved.exam;
+    if(saved.year) document.getElementById('f_year').value = saved.year;
+    if(saved.board) document.getElementById('f_board').value = saved.board;
+    if(saved.roll) document.getElementById('f_roll').value = saved.roll;
+    if(saved.reg) document.getElementById('f_reg').value = saved.reg;
+
+    async function loadCaptcha() {
+      const box = document.getElementById('status_box');
+      box.innerText = '🔄 Loading new captcha...';
+      try {
+        const res = await fetch('/api/proxy?action=captcha');
+        currentSessionId = res.headers.get('x-php-session') || '';
+        const blob = await res.blob();
+        document.getElementById('cap_img').src = URL.createObjectURL(blob);
+        document.getElementById('cap_in').value = '';
+        box.innerText = 'Status: Ready!';
+      } catch(e) {
+        box.innerText = '⚠️ Failed to load captcha. Click reload.';
+      }
+    }
+
+    document.getElementById('cap_reload').onclick = loadCaptcha;
+    loadCaptcha();
+
+    document.getElementById('submit_btn').onclick = async () => {
+      const cfg = {
+        exam: document.getElementById('f_exam').value,
+        year: document.getElementById('f_year').value.trim(),
+        board: document.getElementById('f_board').value,
+        roll: document.getElementById('f_roll').value.trim(),
+        reg: document.getElementById('f_reg').value.trim()
+      };
+      const captchaVal = document.getElementById('cap_in').value.trim();
+      const statusBox = document.getElementById('status_box');
+
+      if(!cfg.roll || !captchaVal) {
+        statusBox.innerText = '⚠️ Please fill in your Roll Number and Captcha code!';
+        return;
+      }
+      localStorage.setItem('ver_res_cfg', JSON.stringify(cfg));
+
+      const payload = {
+        board: cfg.board,
+        exam: cfg.exam,
+        year: cfg.year,
+        result_type: '1',
+        roll: cfg.roll,
+        reg: cfg.reg,
+        ein: '',
+        captcha: captchaVal
+      };
+
+      for(let attempt = 1; attempt <= 20; attempt++) {
+        statusBox.style.color = '#facc15';
+        statusBox.innerText = `⏳ Contacting server... (Attempt ${attempt}/20)`;
+        try {
+          const res = await fetch('/api/proxy?action=result', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-php-session': currentSessionId
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if(res.ok) {
+            const data = await res.json();
+            if(data.status === 0 && data.res) {
+              const r = data.res;
+              statusBox.style.color = '#10b981';
+              statusBox.innerHTML = `🎉 <b>RESULT FOUND!</b>\n👤 Name: ${r.name || 'N/A'}\n🏫 Institute: ${r.inst_name || 'N/A'}\n🏆 Result: <b>${r.res_detail || r.gpa || 'Passed'}</b>\n\n📋 Subject Marks / Details:\n${r.display_details || JSON.stringify(r, null, 2)}`;
+              return;
+            } else {
+              statusBox.style.color = '#ef4444';
+              statusBox.innerText = `❌ Server Error: ${data.msg || 'Invalid Captcha / Details'}\nLoading new captcha...`;
+              loadCaptcha();
+              return;
+            }
+          }
+        } catch(err) {
+          statusBox.innerText = `⚠️ Connection timeout! Retrying automatically...`;
+        }
+        await new Promise(r => setTimeout(r, 2000));
+      }
+      statusBox.style.color = '#ef4444';
+      statusBox.innerText = '❌ Max retries reached. The server is heavily overloaded. Please try again.';
+    };
+  </script>
+</body>
+</html>
