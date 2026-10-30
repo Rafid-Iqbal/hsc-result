@@ -1,64 +1,57 @@
-// api/proxy.js
 export default async function handler(req, res) {
-  const targetHost = 'https://eboardresults.com';
-  const action = req.query.action;
+    // Enable CORS for your frontend
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // 1. Forward Captcha Request & Capture Session Cookie (PHPSESSID)
-  if (action === 'captcha') {
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    const { action } = req.query;
+
     try {
-      const response = await fetch(`${targetHost}/v2/captcha`, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Referer': `${targetHost}/v2/home`
+        if (action === 'captcha') {
+            // 1. Fetch home page to get session cookie (PHPSESSID)
+            const homeResponse = await fetch('http://www.eboardresults.com/v2/home', {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                }
+            });
+
+            const setCookie = homeResponse.headers.get('set-cookie') || '';
+            const phpSessionMatch = setCookie.match(/PHPSESSID=([^;]+)/);
+            const phpSessionId = phpSessionMatch ? phpSessionMatch[1] : '';
+
+            // 2. Fetch the captcha image using the session cookie
+            const captchaResponse = await fetch('http://www.eboardresults.com/v2/captcha', {
+                headers: {
+                    'Cookie': `PHPSESSID=${phpSessionId}`,
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Referer': 'http://www.eboardresults.com/v2/home'
+                }
+            });
+
+            if (!captchaResponse.ok) {
+                throw new Error('Failed to fetch captcha from upstream server');
+            }
+
+            const arrayBuffer = await captchaResponse.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            // Pass the session back to the frontend header
+            res.setHeader('X-Php-Session', phpSessionId);
+            res.setHeader('Content-Type', 'image/png');
+            return res.send(buffer);
         }
-      });
 
-      const setCookieHeader = response.headers.get('set-cookie');
-      let phpSessionId = '';
-      if (setCookieHeader) {
-        const match = setCookieHeader.match(/PHPSESSID=([^;]+)/);
-        if (match) phpSessionId = match[1];
-      }
+        if (req.method === 'POST') {
+            // Handle result checking submission proxying here if needed
+            return res.status(200).json({ success: true, message: 'Proxy active' });
+        }
 
-      const buffer = await response.arrayBuffer();
-      res.setHeader('Content-Type', 'image/jpeg');
-      if (phpSessionId) {
-        res.setHeader('X-Php-Session', phpSessionId);
-      }
-      return res.status(200).send(Buffer.from(buffer));
+        return res.status(400).json({ error: 'Invalid action' });
     } catch (error) {
-      return res.status(500).json({ error: 'Failed to fetch captcha' });
+        return res.status(500).json({ error: error.message });
     }
-  }
-
-  // 2. Forward Result POST Request with Session Cookie
-  if (action === 'result' && req.method === 'POST') {
-    try {
-      const phpSessionId = req.headers['x-php-session'];
-      const cookieHeader = phpSessionId ? `PHPSESSID=${phpSessionId}` : '';
-
-      const bodyData = new URLSearchParams(req.body).toString();
-
-      const response = await fetch(`${targetHost}/v2/getres`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-          'X-Requested-With': 'XMLHttpRequest',
-          'Cookie': cookieHeader,
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Referer': `${targetHost}/v2/home`,
-          'Origin': targetHost
-        },
-        body: bodyData
-      });
-
-      const data = await response.json();
-      return res.status(200).json(data);
-    } catch (error) {
-      return res.status(500).json({ error: 'Failed to fetch result' });
-    }
-  }
-
-  return res.status(400).json({ error: 'Invalid action' });
 }
