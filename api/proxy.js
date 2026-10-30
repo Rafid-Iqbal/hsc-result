@@ -1,16 +1,9 @@
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
-
     const { action } = req.query;
 
-    try {
-        if (action === 'captcha') {
+    if (action === 'captcha') {
+        try {
             const homeResponse = await fetch('http://www.eboardresults.com/v2/home', {
                 headers: {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -32,10 +25,14 @@ export default async function handler(req, res) {
             const arrayBuffer = await captchaResponse.arrayBuffer();
             res.setHeader('Content-Type', 'image/png');
             return res.send(Buffer.from(arrayBuffer));
+        } catch (error) {
+            return res.status(500).json({ error: 'Upstream fetch failed: ' + error.message });
         }
-
-        return res.status(400).json({ error: 'Invalid action' });
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
     }
+
+    // This will show us precisely what query parameters made it through
+    return res.status(400).json({ 
+        error: 'Invalid action', 
+        receivedQuery: req.query 
+    });
 }
