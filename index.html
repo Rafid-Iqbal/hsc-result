@@ -191,23 +191,20 @@
     if(saved.roll) document.getElementById('f_roll').value = saved.roll;
     if(saved.reg) document.getElementById('f_reg').value = saved.reg;
 
-    async function loadCaptcha() {
-      const box = document.getElementById('status_box');
-      box.innerText = '🔄 Loading new captcha...';
-      try {
-        const res = await fetch('/api/proxy?action=captcha');
-        currentSessionId = res.headers.get('x-php-session') || '';
-        const blob = await res.blob();
-        document.getElementById('cap_img').src = URL.createObjectURL(blob);
+   async function loadCaptcha() {
+    const box = document.getElementById('status_box') || { innerText: '' };
+    box.innerText = 'Loading new captcha...';
+    try {
+        // Fetch directly or fallback to timestamp-busted direct image URL
+        const captchaImg = document.getElementById('cap_img');
+        // Pointing directly to the board's image endpoint with a cache buster
+        captchaImg.src = `http://www.eboardresults.com/v2/captcha?t=${Date.now()}`;
         document.getElementById('cap_in').value = '';
         box.innerText = 'Status: Ready!';
-      } catch(e) {
+    } catch(e) {
         box.innerText = '⚠️ Failed to load captcha. Click reload.';
-      }
     }
-
-    document.getElementById('cap_reload').onclick = loadCaptcha;
-    loadCaptcha();
+}
 
     document.getElementById('submit_btn').onclick = async () => {
       const cfg = {
