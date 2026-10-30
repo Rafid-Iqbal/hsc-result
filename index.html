@@ -191,20 +191,28 @@
     if(saved.roll) document.getElementById('f_roll').value = saved.roll;
     if(saved.reg) document.getElementById('f_reg').value = saved.reg;
 
-   async function loadCaptcha() {
-    const box = document.getElementById('status_box') || { innerText: '' };
-    box.innerText = 'Loading new captcha...';
-    try {
-        // Fetch directly or fallback to timestamp-busted direct image URL
+    async function loadCaptcha() {
+      const box = document.getElementById('status_box');
+      box.style.color = '#facc15';
+      box.innerText = 'Loading new captcha...';
+      
+      try {
         const captchaImg = document.getElementById('cap_img');
-        // Pointing directly to the board's image endpoint with a cache buster
+        // Add a timestamp cache-buster so the browser always fetches a fresh image
         captchaImg.src = `/api/proxy?action=captcha&t=${Date.now()}`;
         document.getElementById('cap_in').value = '';
-        box.innerText = 'Status: Ready!';
-    } catch(e) {
+        box.innerText = 'Status: Ready! Enter details & solve captcha.';
+      } catch(e) {
+        box.style.color = '#ef4444';
         box.innerText = '⚠️ Failed to load captcha. Click reload.';
+      }
     }
-}
+
+    // Wire up the reload button
+    document.getElementById('cap_reload').onclick = loadCaptcha;
+
+    // Automatically trigger captcha load when the page finishes opening
+    window.addEventListener('DOMContentLoaded', loadCaptcha);
 
     document.getElementById('submit_btn').onclick = async () => {
       const cfg = {
@@ -218,6 +226,7 @@
       const statusBox = document.getElementById('status_box');
 
       if(!cfg.roll || !captchaVal) {
+        statusBox.style.color = '#ef4444';
         statusBox.innerText = '⚠️ Please fill in your Roll Number and Captcha code!';
         return;
       }
@@ -262,6 +271,7 @@
             }
           }
         } catch(err) {
+          statusBox.style.color = '#ef4444';
           statusBox.innerText = `⚠️ Connection timeout! Retrying automatically...`;
         }
         await new Promise(r => setTimeout(r, 2000));
